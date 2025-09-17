@@ -32,3 +32,8 @@ resource "aws_instance" "this" {
     Name = "web-instance"
   }
 }
+
+resource "aws_key_pair" "this" {
+  key_name = "cse543-project1-key"
+  public_key = var.public_key
+}

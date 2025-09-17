@@ -14,18 +14,18 @@ resource "aws_s3_bucket_public_access_block" "this" {
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.capstone_bucket.id
 
-  policy = jsondecode({
-    version : "2012-10-17"
-    statement : [
+  policy = jsonencode({
+    Version : "2012-10-17"
+    Statement : [
       {
-        "sid"       = "AllowAllS3ActionsInUserAccount",
-        "principal" = "*",
-        "effect"    = "Allow",
-        "Action" = [
+        Sid       = "AllowAllS3ActionsInUserAccount",
+        Principal = "*",
+        Effect    = "Allow",
+        Action    = [
           "s3:PutObject",
           "s3:GetObject"
         ],
-        "resource" = "${aws_s3_bucket.capstone_bucket.arn}/*",
+        Resource  = "${aws_s3_bucket.capstone_bucket.arn}/*",
       }
     ]
   })

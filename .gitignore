@@ -1,0 +1,30 @@
+credentials/
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+.terraform.lock.hcl
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+venv/
+.venv/
+env/
+build/
+dist/
+*.egg-info/
+.DS_Store
+
+# VS Code settings (optional)
+.vscode/

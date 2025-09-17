@@ -14,7 +14,7 @@ This project implements a cloud-based web service for face recognition using AWS
 
 ## Directory Structure
 
-```
+```text
 Project1/
 ├── Classification Results on Face Dataset (1000 images).csv
 ├── CSE546-SPRING-2025/
@@ -73,7 +73,7 @@ Project1/
 
 - The server responds with:
 
-  ```
+  ```text
   test_000:Paul
   ```
 

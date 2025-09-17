@@ -1,0 +1,13 @@
+name: Deploy Face Recognition Web App
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  S3_BUCKET: your-s3-bucket-name
+  SIMPLEDB_DOMAIN: your-simpledb-domain
+  ECR_REPOSITORY: your-ecr-repository
+  ECS_CLUSTER: your-ecs-cluster
+  ECS_SERVICE: your-ecs-service

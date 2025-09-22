@@ -24,9 +24,9 @@ def ensure_domain_exists():
         return True
         
     # Fill the domain with the initial data
-    
-    with open('Classification Results on Face Dataset (1000 images).csv', newline='') as csvfile:
-        
+
+    with open('Classification_Results_on_Face_Dataset_(1000_images).csv', newline='') as csvfile:
+
         reader = csv.DictReader(csvfile)
         for row in reader:
             sdb_client.put_attributes(

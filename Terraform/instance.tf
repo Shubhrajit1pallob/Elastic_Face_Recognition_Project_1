@@ -21,6 +21,7 @@ resource "aws_instance" "this" {
   subnet_id                   = aws_subnet.public_subnet.id
   associate_public_ip_address = true
   vpc_security_group_ids      = [aws_security_group.public.id]
+  key_name                    = aws_key_pair.this.key_name
 
   root_block_device {
     volume_size           = 8
@@ -34,6 +35,6 @@ resource "aws_instance" "this" {
 }
 
 resource "aws_key_pair" "this" {
-  key_name = "cse543-project1-key"
+  key_name   = "cse543-project1-key"
   public_key = var.public_key
 }

@@ -2,15 +2,11 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    netcat-openbsd \
-    && rm -rf /var/lib/apt/lists/*
+COPY requirements.txt .
 
-COPY Requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-RUN pip install --no-cache-dir -r Requirements.txt
-
-COPY . .
+COPY server.py "Classification Results on Face Dataset (1000 images).csv" ./
 
 EXPOSE 8000
 

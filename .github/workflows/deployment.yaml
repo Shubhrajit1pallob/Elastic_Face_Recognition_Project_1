@@ -1,0 +1,117 @@
+name: Deploy Face Recognition Web App
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SSH_KEY_PRIVATE: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
+  AWS_SSH_KEY_PUBLIC: ${{ secrets.AWS_SSH_KEY_PUBLIC }}
+
+jobs:
+  deploy-infra:
+    runs-on: ubuntu-latest
+    outputs:
+      ele_instance_ip: ${{ steps.get_ip.outputs.INSTANCE_IP }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_wrapper: false
+
+      - name: Initialize Terraform
+        id: initialization
+        run: terraform init
+        working-directory: ./Terraform
+      
+      - name: Terraform Plan
+        id: plan
+        run: |-
+          terraform plan \
+          -var "public_key=$AWS_SSH_KEY_PUBLIC" \
+          -var "private_key=$AWS_SSH_KEY_PRIVATE" \
+          -var "db_username=$AWS_RDS_USERNAME" \
+          -var "db_password=$AWS_RDS_PASSWORD" \
+          -out=PLAN
+        working-directory: ./Terraform
+
+      - name: Apply Terraform configuration
+        run: terraform apply PLAN --auto-approve
+        working-directory: ./Terraform
+      
+      - name: Get the instance public IP
+        id: get_ip
+        run: |
+          echo "INSTANCE_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+          echo "Instance Public IP: $INSTANCE_IP"
+        working-directory: ./Terraform
+
+  deploy-app:
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      
+      - name: set the public IP env variable
+        id: env_ip
+        run: echo "INSTANCE_IP=${{ needs.deploy-infra.outputs.ele_instance_ip }}" >> $GITHUB_ENV
+      
+      - name: Login to AWS ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Create ECR repository if not exists
+        env:
+          AWS_DEFAULT_REGION: us-east-1
+          REPOSITORY: cse546-project1-part1-repo
+        run: |
+          aws ecr describe-repositories --repository-names "$REPOSITORY" --region "$AWS_DEFAULT_REGION" || \
+          aws ecr create-repository --repository-name "$REPOSITORY" --region "$AWS_DEFAULT_REGION"
+      
+      - name: Build and Push Docker Image
+        env: 
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: cse546-project1-part1-repo
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_DEFAULT_REGION: us-east-1
+        run: |-
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+        working-directory: ./
+
+      - name: Deploy docker img to EC2 instance
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: cse546-project1-part1-repo
+          INSTANCE_IP: ${{ env.INSTANCE_IP }}
+          SSH_KEY: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_DEFAULT_REGION: us-east-1
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ env.INSTANCE_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
+          envs: AWS_SSH_KEY_PRIVATE,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME
+          script: |
+            sudo apt-get update
+            sudo apt-get install -y docker.io
+            sudo $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+            docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            docker stop web || true
+            docker rm web || true
+            docker run -d --name web \
+              -p 8000:8000 \
+              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+              $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+

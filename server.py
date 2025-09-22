@@ -124,6 +124,11 @@ def handle_request():
     
     filename = file.filename
     print(f"Received file: {filename}")
+    
+    search_filename = filename
+    if filename is not None and '.' in filename:
+        search_filename = filename.rsplit('.', 1)[0]
+        print(f"Searching for file without extension: {search_filename}")
 
     # The block to upload the file to s3.
     try:
@@ -131,7 +136,7 @@ def handle_request():
         
         response = sdb_client.get_attributes(
                 DomainName=DOMAIN_NAME,
-                ItemName=filename,
+                ItemName=search_filename,
                 AttributeNames=['Results']
             )
         

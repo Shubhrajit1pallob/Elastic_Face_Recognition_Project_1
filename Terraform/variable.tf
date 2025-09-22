@@ -1,11 +1,13 @@
 variable "private_key" {
   description = "The private key for ssh key pair"
   type        = string
+  default = ""
 }
 
 variable "public_key" {
   description = "The public key for ssh key pair"
   type        = string
+  default = ""
 }
 
 variable "region" {

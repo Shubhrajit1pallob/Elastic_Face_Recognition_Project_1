@@ -11,6 +11,8 @@ terraform {
     bucket = "03-backend-bucket-shubhrajit"
     key    = "cse546/project1/part1/terraform.tfstate"
     region = "us-east-1"
+    # dynamodb_table = "terraform-state-lock"
+    # encrypt = true
   }
 }
 

@@ -1,3 +1,8 @@
+locals {
+  public_key_content  = var.public_key != "" ? var.public_key : file("/Users/shawn47/.ssh/id_ed25519.pub")
+  private_key_content = var.private_key != "" ? var.private_key : file("/Users/shawn47/.ssh/id_ed25519")
+}
+
 data "aws_ami" "ubuntu" {
 
   most_recent = true
@@ -36,5 +41,5 @@ resource "aws_instance" "this" {
 
 resource "aws_key_pair" "this" {
   key_name   = "cse543-project1-key"
-  public_key = var.public_key
+  public_key = local.public_key_content
 }

@@ -19,25 +19,26 @@ def ensure_domain_exists():
     if DOMAIN_NAME not in domains:
         sdb_client.create_domain(DomainName=DOMAIN_NAME)
         print(f"Created: {DOMAIN_NAME}")
+        
+        # Fill the domain with the initial data
+
+        with open('Classification_Results_on_Face_Dataset.csv', newline='') as csvfile:
+
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                sdb_client.put_attributes(
+                    DomainName=DOMAIN_NAME,
+                    ItemName=row['Image'],
+                    Attributes=[
+                        {'Name': 'Results', 'Value': row['Results'], 'Replace': True}
+                    ]
+                )
     else:
         print(f"Domain {DOMAIN_NAME} already exists.")
-        return True
-        
-    # Fill the domain with the initial data
-
-    with open('Classification_Results_on_Face_Dataset.csv', newline='') as csvfile:
-
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            sdb_client.put_attributes(
-                DomainName=DOMAIN_NAME,
-                ItemName=row['Image'],  # e.g., 'test_000'
-                Attributes=[
-                    {'Name': 'Results', 'Value': row['Results'], 'Replace': True}
-                ]
-            )
 
     return True
+
+ensure_domain_exists()
 
 @app.route("/", methods=['POST'])
 def handle_request():
@@ -50,31 +51,26 @@ def handle_request():
     file = request.files['inputFile']
     
     filename = file.filename
-    
+
     # The block to upload the file to s3.
     try:
         s3_client.upload_fileobj(file, BUCKET_NAME, filename)
         
-        if ensure_domain_exists():
-            response = sdb_client.get_attributes(
+        response = sdb_client.get_attributes(
                 DomainName=DOMAIN_NAME,
                 ItemName=filename,
                 AttributeNames=['Results']
             )
         
-            if 'Attributes' in response and response['Attributes']:
-                result = response['Attributes'][0]['Value']
-                print(f"File: {filename},{result}")
+        if 'Attributes' in response and response['Attributes']:
+            result = response['Attributes'][0]['Value']
+            print(f"File: {filename},{result}")
 
-                return f"{filename}:{result}", 200, {"Content-Type": "text/plain"}
-            else:
-                return jsonify({
-                    "error": f"No results found for file: {filename}"
-                }), 404
+            return f"{filename}:{result}", 200, {"Content-Type": "text/plain"}
         else:
             return jsonify({
-                "error": "SimpleDB domain could not be ensured."
-            }), 500
+                "error": f"No results found for file: {filename}"
+            }), 404
                 
     except Exception as e:
         return jsonify({

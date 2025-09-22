@@ -105,13 +105,16 @@ def ensure_domain_exists():
 
 ensure_domain_exists()
 
-@app.route("/", methods=['GET'])
-def health_check():
-    return "Face Recognition Service is running!"
+# @app.route("/", methods=['GET'])
+# def health_check():
+#     return "Face Recognition Service is running!"
 
 @app.route("/", methods=['GET', 'POST'])
 def handle_request():
-    
+
+    if request.method == 'GET':
+        return "Face Recognition Service is running!", 200
+
     if 'inputFile' not in request.files:
         return jsonify({
             "error": "No file part in the request"
@@ -120,6 +123,7 @@ def handle_request():
     file = request.files['inputFile']
     
     filename = file.filename
+    print(f"Received file: {filename}")
 
     # The block to upload the file to s3.
     try:

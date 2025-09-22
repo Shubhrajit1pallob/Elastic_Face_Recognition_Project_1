@@ -36,8 +36,6 @@ jobs:
           terraform plan \
           -var "public_key=$AWS_SSH_KEY_PUBLIC" \
           -var "private_key=$AWS_SSH_KEY_PRIVATE" \
-          -var "db_username=$AWS_RDS_USERNAME" \
-          -var "db_password=$AWS_RDS_PASSWORD" \
           -out=PLAN
         working-directory: ./Terraform
 

@@ -49,6 +49,10 @@ jobs:
           echo "INSTANCE_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
           echo "Instance Public IP: $INSTANCE_IP"
         working-directory: ./Terraform
+      
+      - name: Print the instance public IP
+        run: |
+          echo "Instance Public IP: ${{ steps.get_ip.outputs.INSTANCE_IP }}"
 
   deploy-app:
     needs: deploy-infra

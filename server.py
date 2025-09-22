@@ -15,27 +15,33 @@ DOMAIN_NAME = '0000000000-simpleDB'
 
 # Check if the domain exists and that domain has data
 def ensure_domain_exists():
-    domains = sdb_client.list_domains()['DomainNames']
-    if DOMAIN_NAME not in domains:
-        sdb_client.create_domain(DomainName=DOMAIN_NAME)
-        print(f"Created: {DOMAIN_NAME}")
-        
-        # Fill the domain with the initial data
+    try:
+        response = sdb_client.list_domains()
+        domains = response.get('DomainNames', [])
+        if DOMAIN_NAME not in domains:
+            sdb_client.create_domain(DomainName=DOMAIN_NAME)
+            print(f"Created: {DOMAIN_NAME}")
+            
+            # Fill the domain with the initial data
 
-        with open('Classification_Results_on_Face_Dataset.csv', newline='') as csvfile:
+            with open('Classification_Results_on_Face_Dataset.csv', newline='') as csvfile:
 
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                sdb_client.put_attributes(
-                    DomainName=DOMAIN_NAME,
-                    ItemName=row['Image'],
-                    Attributes=[
-                        {'Name': 'Results', 'Value': row['Results'], 'Replace': True}
-                    ]
-                )
-    else:
-        print(f"Domain {DOMAIN_NAME} already exists.")
-
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    sdb_client.put_attributes(
+                        DomainName=DOMAIN_NAME,
+                        ItemName=row['Image'],
+                        Attributes=[
+                            {'Name': 'Results', 'Value': row['Results'], 'Replace': True}
+                        ]
+                    )
+        else:
+            print(f"Domain {DOMAIN_NAME} already exists.")
+            
+    except Exception as e:
+        print(f"Error ensuring domain exists: {e}")
+        raise e
+    
     return True
 
 ensure_domain_exists()

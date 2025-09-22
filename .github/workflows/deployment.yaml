@@ -109,9 +109,8 @@ jobs:
           envs: AWS_SSH_KEY_PRIVATE,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME
           script: |
             sudo apt-get update
-            sudo apt-get install -y docker.io -y
-            sudo apt install awscli -y
-            sudo $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
+            sudo apt-get install -y docker.io awscli
+            sudo aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             sudo docker stop web || true
             sudo docker rm web || true
             sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG

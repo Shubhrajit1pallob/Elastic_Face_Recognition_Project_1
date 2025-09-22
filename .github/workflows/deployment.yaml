@@ -40,7 +40,7 @@ jobs:
         working-directory: ./Terraform
 
       - name: Apply Terraform configuration
-        run: terraform apply PLAN --auto-approve
+        run: terraform apply PLAN
         working-directory: ./Terraform
       
       - name: Get the instance public IP

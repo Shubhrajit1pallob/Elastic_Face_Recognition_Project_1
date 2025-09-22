@@ -25,7 +25,7 @@ def ensure_domain_exists():
         
     # Fill the domain with the initial data
 
-    with open('Classification_Results_on_Face_Dataset_(1000_images).csv', newline='') as csvfile:
+    with open('Classification_Results_on_Face_Dataset.csv', newline='') as csvfile:
 
         reader = csv.DictReader(csvfile)
         for row in reader:

@@ -7,7 +7,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY server.py .
-COPY Classification_Results_on_Face_Dataset_\(1000_images\).csv .
+COPY Classification_Results_on_Face_Dataset.csv .
 
 EXPOSE 8000
 

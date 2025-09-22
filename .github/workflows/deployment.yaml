@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set the public IP
-        run: echo "INSTANCE_IP=54.152.91.221" >> $GITHUB_ENV
+        run: echo "INSTANCE_IP=3.237.178.84" >> $GITHUB_ENV
       - name: Checkout Code
         uses: actions/checkout@v3
       

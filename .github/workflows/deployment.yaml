@@ -108,10 +108,10 @@ jobs:
             sudo apt-get install -y docker.io -y
             sudo apt install awscli -y
             sudo $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-            docker stop web || true
-            docker rm web || true
-            docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
-            docker run -d --name web \
+            sudo docker stop web || true
+            sudo docker rm web || true
+            sudo docker pull $REGISTRY/$REPOSITORY:$IMAGE_TAG
+            sudo docker run -d --name web \
               -p 8000:8000 \
               -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
               -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \

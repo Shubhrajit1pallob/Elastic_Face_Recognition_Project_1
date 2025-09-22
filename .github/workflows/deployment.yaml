@@ -84,10 +84,10 @@ jobs:
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
         working-directory: ./
 
-      - name: Wait for EC2 instance to be ready
-        run: |
-          echo "Waiting for EC2 instance to be ready..."
-          sleep 60
+      # - name: Wait for EC2 instance to be ready
+      #   run: |
+      #     echo "Waiting for EC2 instance to be ready..."
+      #     sleep 60
 
       - name: Deploy docker img to EC2 instance
         env:

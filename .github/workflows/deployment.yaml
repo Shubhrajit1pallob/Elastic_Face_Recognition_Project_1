@@ -14,8 +14,10 @@ env:
 jobs:
   deploy-infra:
     runs-on: ubuntu-latest
+    if: false  # Disable this job to keep the existing infrastructure
     outputs:
       ele_instance_ip: ${{ steps.get_ip.outputs.INSTANCE_IP }}
+    
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -55,9 +57,11 @@ jobs:
           echo "Instance Public IP: ${{ steps.get_ip.outputs.INSTANCE_IP }}"
 
   deploy-app:
-    needs: deploy-infra
+    # needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
+      - name: Set the public IP
+        run: echo "INSTANCE_IP="13.217.136.135" >> $GITHUB_ENV
       - name: Checkout Code
         uses: actions/checkout@v3
       

@@ -32,6 +32,13 @@ jobs:
         run: terraform init
         working-directory: ./Terraform
       
+      - name: Destroy existing infrastructure
+        if: false  # Change to 'true' temporarily to destroy existing infra
+        run: terraform destroy -auto-approve \
+          -var "public_key=$AWS_SSH_KEY_PUBLIC" \
+          -var "private_key=$AWS_SSH_KEY_PRIVATE"
+        working-directory: ./Terraform
+      
       - name: Terraform Plan
         id: plan
         run: |-

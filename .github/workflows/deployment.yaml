@@ -14,7 +14,7 @@ env:
 jobs:
   deploy-infra:
     runs-on: ubuntu-latest
-    # if: false
+    if: false
     outputs:
       ele_instance_ip: ${{ steps.get_ip.outputs.INSTANCE_IP }}
     
@@ -64,7 +64,7 @@ jobs:
           echo "Instance Public IP: ${{ steps.get_ip.outputs.INSTANCE_IP }}"
 
   deploy-app:
-    needs: deploy-infra
+    # needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
       # - name: Set the public IP

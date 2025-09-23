@@ -67,14 +67,14 @@ jobs:
     # needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
-      # - name: Set the public IP
-      #   run: echo "INSTANCE_IP=54.173.216.71" >> $GITHUB_ENV
+      - name: Set the public IP
+        run: echo "INSTANCE_IP=13.218.75.250" >> $GITHUB_ENV
       - name: Checkout Code
         uses: actions/checkout@v3
       
-      - name: set the public IP env variable
-        id: env_ip
-        run: echo "INSTANCE_IP=${{ needs.deploy-infra.outputs.ele_instance_ip }}" >> $GITHUB_ENV
+      # - name: set the public IP env variable
+      #   id: env_ip
+      #   run: echo "INSTANCE_IP=${{ needs.deploy-infra.outputs.ele_instance_ip }}" >> $GITHUB_ENV
       
       - name: Login to AWS ECR
         id: ecr-login

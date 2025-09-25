@@ -43,3 +43,11 @@ resource "aws_key_pair" "this" {
   key_name   = "cse543-project1-key"
   public_key = local.public_key_content
 }
+
+resource "aws_eip" "this" {
+  instance = aws_instance.this.id
+
+  tags = {
+    Name = "web-instance-eip"
+  }
+}

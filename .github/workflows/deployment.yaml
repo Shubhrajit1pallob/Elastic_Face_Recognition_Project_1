@@ -52,10 +52,18 @@ jobs:
         run: terraform apply PLAN
         working-directory: ./Terraform
       
+      # - name: Get the instance public IP
+      #   id: get_ip
+      #   run: |
+      #     echo "INSTANCE_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+      #     echo "Instance Public IP: $INSTANCE_IP"
+      #   working-directory: ./Terraform
+
+      # This for the elastic IP.
       - name: Get the instance public IP
         id: get_ip
         run: |
-          echo "INSTANCE_IP=$(terraform output -raw instance_public_ip)" >> $GITHUB_OUTPUT
+          echo "INSTANCE_IP=$(terraform output -raw elastic_ip)" >> $GITHUB_OUTPUT
           echo "Instance Public IP: $INSTANCE_IP"
         working-directory: ./Terraform
       

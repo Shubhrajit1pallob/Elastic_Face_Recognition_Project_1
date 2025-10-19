@@ -14,7 +14,7 @@ env:
 jobs:
   deploy-infra:
     runs-on: ubuntu-latest
-    if: false
+    # if: false
     outputs:
       ele_instance_ip: ${{ steps.get_ip.outputs.INSTANCE_IP }}
     
@@ -72,7 +72,7 @@ jobs:
           echo "Instance Public IP: ${{ steps.get_ip.outputs.INSTANCE_IP }}"
 
   deploy-app:
-    # needs: deploy-infra
+    needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
       - name: Set the public IP
@@ -80,9 +80,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
       
-      # - name: set the public IP env variable
-      #   id: env_ip
-      #   run: echo "INSTANCE_IP=${{ needs.deploy-infra.outputs.ele_instance_ip }}" >> $GITHUB_ENV
+      - name: set the public IP env variable
+        id: env_ip
+        run: echo "INSTANCE_IP=${{ needs.deploy-infra.outputs.ele_instance_ip }}" >> $GITHUB_ENV
       
       - name: Login to AWS ECR
         id: ecr-login

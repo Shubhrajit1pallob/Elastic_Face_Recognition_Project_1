@@ -51,3 +51,26 @@ resource "aws_eip" "this" {
     Name = "web-instance-eip"
   }
 }
+
+resource "aws_iam_policy" "sqs_access" {
+  name = "SQSAccessPolicy"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage",
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueUrl",
+          "sqs:GetQueueAttributes"
+        ]
+        Resource = [
+          aws_sqs_queue.web_to_app.arn,
+          aws_sqs_queue.app_to_web.arn
+        ]
+      }
+    ]
+  })
+}

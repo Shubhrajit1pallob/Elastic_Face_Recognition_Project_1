@@ -51,11 +51,36 @@ def get_app_instances(type):
         for reservation in resp['Reservations']:
             for inst in reservation['Instances']:
                 instances.append(inst)   
+    
+    elif type == 'pending':
+        resp = ec2.describe_instances(
+            Filters=[
+                {'Name': f'tag:{TAG_KEYS}', 'Values': ['app-tier-instance']},
+                {'Name': 'instance-state-name', 'Values': ['pending']}
+            ]
+        )
+        
+        for reservation in resp['Reservations']:
+            for inst in reservation['Instances']:
+                instances.append(inst)
                 
     elif type == 'all':
         resp = ec2.describe_instances(
             Filters=[
                 {'Name': f'tag:{TAG_KEYS}', 'Values': ['app-tier-instance']}
+            ]
+        )
+        
+        for reservation in resp['Reservations']:
+            for inst in reservation['Instances']:
+                instances.append(inst)
+    
+    elif type == 'active':
+        # Active = running + pending (instances that are or will be available)
+        resp = ec2.describe_instances(
+            Filters=[
+                {'Name': f'tag:{TAG_KEYS}', 'Values': ['app-tier-instance']},
+                {'Name': 'instance-state-name', 'Values': ['running', 'pending']}
             ]
         )
         
@@ -152,36 +177,68 @@ def launch_app_tier():
         
 def scale(queue_url):
     print("Starting scaling loop...")
+    idle_cycles = 0  # Track how many cycles the queue has been empty
+    IDLE_THRESHOLD = 3  # Number of idle cycles before scaling down
+    
     while True:
         queue_len = get_queue_length(queue_url)
         print(f"Current queue length: {queue_len}")
+        
         running = get_app_instances('running')
         print(f"Currently running instances: {len(running)}")
+        
+        pending = get_app_instances('pending')
+        print(f"Currently pending instances: {len(pending)}")
+        
         stopped = get_app_instances('stopped')
         print(f"Currently stopped instances: {len(stopped)}")
-        terminated = get_app_instances('terminated')
-        print(f"Terminated instances: {len(terminated)}")
+        
+        # Active instances = running + pending
+        active_count = len(running) + len(pending)
+        print(f"Active instances (running + pending): {active_count}")
+        
+        # Total capacity = active + stopped (excludes terminated)
+        total_capacity = active_count + len(stopped)
+        print(f"Total capacity: {total_capacity}")
 
-        total = len(running) + len(stopped)
-        print(f"Total instances: {total}")
-
-        if queue_len > 0 and total < MAX_INSTANCES:
-            if stopped:
-                num_to_start = min(min(queue_len, MAX_INSTANCES) - len(running), len(stopped))
-                for i in stopped[:num_to_start]:
-                    print(f"Starting stopped instance: {i['InstanceId']}")
-                    start_instance(i['InstanceId'])
-            else:
-                current_total = len(get_app_instances('all'))
-                num_to_launch = min(queue_len, MAX_INSTANCES) - current_total
-                if num_to_launch > 0:
-                    print(f"No stopped instances available, launching {num_to_launch} new instance(s).")
+        # Scale UP logic
+        if queue_len > 0:
+            idle_cycles = 0  # Reset idle counter
+            
+            # Calculate how many instances we need total
+            desired_instances = min(queue_len, MAX_INSTANCES)
+            instances_needed = desired_instances - active_count
+            
+            print(f"Desired instances: {desired_instances}, Need to add: {instances_needed}")
+            
+            if instances_needed > 0 and active_count < MAX_INSTANCES:
+                # First, start stopped instances
+                if stopped:
+                    num_to_start = min(instances_needed, len(stopped))
+                    print(f"Starting {num_to_start} stopped instance(s)...")
+                    for i in stopped[:num_to_start]:
+                        print(f"Starting stopped instance: {i['InstanceId']}")
+                        start_instance(i['InstanceId'])
+                        instances_needed -= 1
+                
+                # Then, launch new instances if still needed
+                if instances_needed > 0 and total_capacity < MAX_INSTANCES:
+                    num_to_launch = min(instances_needed, MAX_INSTANCES - total_capacity)
+                    print(f"Launching {num_to_launch} new instance(s)...")
                     for _ in range(num_to_launch):
                         launch_app_tier()
-        elif queue_len == 0 and running:
-            for i in running:
-                print(f"Queue empty, stopping running instance: {i['InstanceId']}")
-                stop_instance(i['InstanceId'])
+        
+        # Scale DOWN logic (with grace period)
+        elif queue_len == 0:
+            idle_cycles += 1
+            print(f"Queue empty. Idle cycles: {idle_cycles}/{IDLE_THRESHOLD}")
+            
+            if idle_cycles >= IDLE_THRESHOLD and running:
+                print(f"Scaling down after {idle_cycles} idle cycles...")
+                for i in running:
+                    print(f"Stopping running instance: {i['InstanceId']}")
+                    stop_instance(i['InstanceId'])
+                idle_cycles = 0  # Reset after scaling down
         
         # Otherwise, sleep before next check
         print("Sleeping for 10 seconds before next check...")

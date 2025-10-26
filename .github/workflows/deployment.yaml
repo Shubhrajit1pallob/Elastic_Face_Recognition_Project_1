@@ -161,10 +161,10 @@ jobs:
             aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             
             # Stop and remove existing container (if any)
-            sudo docker stop web || true
-            sudo docker rm web || true
-            sudo docker stop controller || true
-            sudo docker rm controller || true
+            # sudo docker stop web || true
+            # sudo docker rm web || true
+            # sudo docker stop controller || true
+            # sudo docker rm controller || true
 
             # Copy the compose file to the EC2 instance
             scp -i $AWS_SSH_KEY_PRIVATE compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml

@@ -140,7 +140,7 @@ jobs:
           host: ${{ env.INSTANCE_IP }}
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
-          envs: AWS_SSH_KEY_PRIVATE,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME,INPUT_BUCKET_NAME,OUTPUT_BUCKET_NAME,SEND_QUEUE_URL,RECEIVE_QUEUE_URL,AMI_ID,INSTANCE_IP
+          envs: SSH_KEY,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME,INPUT_BUCKET_NAME,OUTPUT_BUCKET_NAME,SEND_QUEUE_URL,RECEIVE_QUEUE_URL,AMI_ID,INSTANCE_IP
           script: |
             # Error handling
             set -e
@@ -155,7 +155,7 @@ jobs:
             sudo systemctl start docker
             sudo systemctl enable docker
 
-            echo "$AWS_SSH_KEY_PRIVATE" > aws_key.pem
+            echo "$SSH_KEY" > aws_key.pem
             chmod 600 aws_key.pem
             
             # Configure AWS credentials for the ubuntu user

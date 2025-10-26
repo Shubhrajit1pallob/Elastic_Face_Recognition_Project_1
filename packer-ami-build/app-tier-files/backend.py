@@ -59,22 +59,19 @@ if __name__ == "__main__":
         try:
             key = sqs_receive_message()
             if key is not None and 'Body' in key:
+                sqs_client.delete_message(
+                    QueueUrl=RECEIVE_QUEUE_URL,
+                    ReceiptHandle=key['ReceiptHandle']
+                )
                 result = process_image(key)
                 if result is not None:
                     name, distance = result
                     output_key = os.path.splitext(os.path.basename(key['Body']))[0]
                     result = f"{output_key}:{name}"
-                    put_image_to_s3(OUTPUT_BUCKET_NAME, output_key, name)
                     message_id = sqs_send_message(result)
+                    put_image_to_s3(OUTPUT_BUCKET_NAME, output_key, name)
                     # print(f"Processed image. Identified: {name} with distance {distance}. Message ID: {message_id}")
                     print(f"Result name: {result} and Output Key: {output_key}")
-                    
-
-                    # Delete the message from the queue
-                    sqs_client.delete_message(
-                        QueueUrl=RECEIVE_QUEUE_URL,
-                        ReceiptHandle=key['ReceiptHandle']
-                    )
                 else:
                     print("No image processed.")
             else:

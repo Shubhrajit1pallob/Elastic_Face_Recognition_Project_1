@@ -17,4 +17,14 @@ WORKDIR /app
 COPY --from=build --chown=appuser:appgroup /app .
 USER appuser
 EXPOSE 8000
-ENTRYPOINT ["gunicorn", "-w", "5", "--threads", "8", "-b", "0.0.0.0:8000", "server:app"]
+
+# Increased timeout for long-polling SQS responses
+# Worker class 'gthread' for better thread handling
+ENTRYPOINT ["gunicorn", \
+    "-w", "5", \
+    "--threads", "8", \
+    "--timeout", "180", \
+    "--worker-class", "gthread", \
+    "--keep-alive", "5", \
+    "-b", "0.0.0.0:8000", \
+    "server:app"]

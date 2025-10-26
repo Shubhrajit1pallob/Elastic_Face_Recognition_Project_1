@@ -165,9 +165,17 @@ def handle_request():
                     receipt_handle = msg['ReceiptHandle']
                     
                     if msg_body.startswith(expected_prefix):
-                        # Found our response
-                        result = msg_body.split(':', 2)[-1]
-                        print(f"Match found: {result}")
+                        # msg_body format: "test1:uuid-123:Alice"
+                        # We need to return: "test1:Alice"
+                        parts = msg_body.split(':', 2)
+                        if len(parts) >= 3:
+                            # parts[0] = "test1", parts[1] = "uuid-123", parts[2] = "Alice"
+                            result = f"{parts[0]}:{parts[2]}"  # "test1:Alice"
+                        else:
+                            # Fallback for old format without request_id
+                            result = msg_body
+                        
+                        print(f"Returning result: '{result}'")
                         
                         sqs_client.delete_message(
                             QueueUrl=RECEIVE_QUEUE_URL,

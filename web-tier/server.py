@@ -39,39 +39,71 @@ def handle_request():
     print(f"Received file: {filename}")
     
     try:
+        # Upload to S3
         s3_client.upload_fileobj(file, INPUT_BUCKET_NAME, filename)
-        print(f"Uploaded file to S3 bucket {INPUT_BUCKET_NAME} with key {filename}")
+        print(f"Uploaded file to S3: {filename}")
 
-        # Send the filename as message to SQS
+        # Send to request queue
         sqs_client.send_message(
             QueueUrl=SEND_QUEUE_URL,
             MessageBody=filename
         )
+        print(f"Sent to request queue: {filename}")
 
         if not filename:
-            return jsonify({"error": "Filename is None, cannot process request."}), 400
+            return jsonify({"error": "Filename is None"}), 400
 
+        # Wait for response
         expected_prefix = filename.rsplit('.', 1)[0] + ':'
-        timeout = 60  # seconds
+        print(f"Waiting for response with prefix: {expected_prefix}")
+        
+        timeout = 120  # Increase timeout to 120 seconds
         start_time = time.time()
+        
         while time.time() - start_time < timeout:
-            response = sqs_client.receive_message(
-                QueueUrl=RECEIVE_QUEUE_URL,
-                MaxNumberOfMessages=10,
-                WaitTimeSeconds=2
-            )
-            messages = response.get('Messages', [])
-            for msg in messages:
-                if msg['Body'].startswith(expected_prefix):
-                    sqs_client.delete_message(
-                        QueueUrl=RECEIVE_QUEUE_URL,
-                        ReceiptHandle=msg['ReceiptHandle']
-                    )
-                    return msg['Body'], 200, {'Content-Type': 'text/plain'}
-            time.sleep(1)
-        # Timeout
+            try:
+                response = sqs_client.receive_message(
+                    QueueUrl=RECEIVE_QUEUE_URL,
+                    MaxNumberOfMessages=10,
+                    WaitTimeSeconds=2
+                )
+                
+                messages = response.get('Messages', [])
+                if messages:
+                    print(f"Checking {len(messages)} messages")
+                    
+                    for msg in messages:
+                        print(f"Checking message: {msg['Body']}")
+                        if msg['Body'].startswith(expected_prefix):
+                            # Found our response
+                            print(f"Found matching response: {msg['Body']}")
+                            sqs_client.delete_message(
+                                QueueUrl=RECEIVE_QUEUE_URL,
+                                ReceiptHandle=msg['ReceiptHandle']
+                            )
+                            return msg['Body'], 200, {'Content-Type': 'text/plain'}
+                        else:
+                            # Make non-matching messages visible again
+                            try:
+                                sqs_client.change_message_visibility(
+                                    QueueUrl=RECEIVE_QUEUE_URL,
+                                    ReceiptHandle=msg['ReceiptHandle'],
+                                    VisibilityTimeout=0
+                                )
+                            except Exception as e:
+                                print(f"Error changing visibility: {e}")
+                
+                time.sleep(1)
+            except Exception as e:
+                print(f"Error receiving messages: {e}")
+                time.sleep(1)
+                continue
+
+        print(f"Timeout waiting for: {filename}")
         return "Timeout waiting for result", 504, {'Content-Type': 'text/plain'}
+        
     except Exception as e:
+        print(f"Error processing request: {e}")
         return str(e), 500, {'Content-Type': 'text/plain'}
         
 

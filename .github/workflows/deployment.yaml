@@ -102,8 +102,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           AWS_DEFAULT_REGION: us-east-1
         run: |-
-          docker build -f ./web-tier/Dockerfile.web -t $REGISTRY/$REPOSITORY-web:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY-web:$IMAGE_TAG
+          docker build -f ./web-tier/Dockerfile.web -t $REGISTRY/$REPOSITORY:web-$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:web-$IMAGE_TAG
         working-directory: ./
         
       - name: Build and Push Controller Docker Image
@@ -113,8 +113,8 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
           AWS_DEFAULT_REGION: us-east-1
         run: |-
-          docker build -f ./controller/Dockerfile.controller -t $REGISTRY/$REPOSITORY-controller:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY-controller:$IMAGE_TAG
+          docker build -f ./controller/Dockerfile.controller -t $REGISTRY/$REPOSITORY:controller-$IMAGE_TAG .
+          docker push $REGISTRY/$REPOSITORY:controller-$IMAGE_TAG
         working-directory: ./
 
       # - name: Wait for EC2 instance to be ready
@@ -180,6 +180,11 @@ jobs:
             echo "SEND_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue" >> .env
             echo "RECEIVE_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue" >> .env
             echo "AMI_ID=ami-0172bcd94efa5ae95" >> .env
+
+            # Add the IMAGE_TAG variable, Registry, and Repository info
+            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+            echo "REGISTRY=$REGISTRY" >> .env
+            echo "REPOSITORY=$REPOSITORY" >> .env
 
             # Copy the .env file to the EC2 instance
             scp -i $SSH_KEY .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env

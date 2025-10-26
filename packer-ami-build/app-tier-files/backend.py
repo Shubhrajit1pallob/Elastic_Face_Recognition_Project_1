@@ -1,3 +1,4 @@
+import time
 from face_recognition import face_match
 import boto3
 import os
@@ -35,11 +36,23 @@ def sqs_receive_message():
     return None
 
 def sqs_send_message(body):
-    response = sqs_client.send_message(
-        QueueUrl=SEND_QUEUE_URL,
-        MessageBody=body
-    )
-    return response['MessageId']
+    try:
+        print(f"Attempting to send message: {body}")
+        response = sqs_client.send_message(
+            QueueUrl=SEND_QUEUE_URL,  # Make sure this is the RESPONSE queue URL
+            MessageBody=body,
+            MessageAttributes={
+                'timestamp': {
+                    'StringValue': str(time.time()),
+                    'DataType': 'String'
+                }
+            }
+        )
+        print(f"Successfully sent message with ID: {response['MessageId']}")
+        return response['MessageId']
+    except Exception as e:
+        print(f"Error sending message to SQS: {e}")
+        raise
 
 def get_image_from_s3(bucket, key, download_path):
     s3_client.download_file(bucket, key, download_path)

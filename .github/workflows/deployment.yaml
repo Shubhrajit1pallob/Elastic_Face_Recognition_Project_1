@@ -104,7 +104,7 @@ jobs:
         run: |-
           docker build -f ./web-tier/Dockerfile.web -t $REGISTRY/$REPOSITORY:web-$IMAGE_TAG ./web-tier
           docker push $REGISTRY/$REPOSITORY:web-$IMAGE_TAG
-        working-directory: ./web-tier
+        working-directory: ./
         
       - name: Build and Push Controller Docker Image
         env: 
@@ -115,7 +115,7 @@ jobs:
         run: |-
           docker build -f ./controller/Dockerfile.controller -t $REGISTRY/$REPOSITORY:controller-$IMAGE_TAG ./controller
           docker push $REGISTRY/$REPOSITORY:controller-$IMAGE_TAG
-        working-directory: ./controller
+        working-directory: ./
 
       # - name: Wait for EC2 instance to be ready
       #   run: |

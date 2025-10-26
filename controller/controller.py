@@ -184,51 +184,47 @@ def scale(queue_url):
         queue_len = get_queue_length(queue_url)
         print(f"Current queue length: {queue_len}")
         
+        # Get all instance counts first
         running = get_app_instances('running')
-        print(f"Currently running instances: {len(running)}")
-        
         pending = get_app_instances('pending')
-        print(f"Currently pending instances: {len(pending)}")
-        
         stopped = get_app_instances('stopped')
-        print(f"Currently stopped instances: {len(stopped)}")
         
-        # Active instances = running + pending
+        # Calculate active instances (running + pending)
         active_count = len(running) + len(pending)
-        print(f"Active instances (running + pending): {active_count}")
         
-        # Total capacity = active + stopped (excludes terminated)
-        total_capacity = active_count + len(stopped)
-        print(f"Total capacity: {total_capacity}")
+        print(f"Running: {len(running)}, Pending: {len(pending)}, Active: {active_count}")
 
         # Scale UP logic
         if queue_len > 0:
-            idle_cycles = 0  # Reset idle counter
+            idle_cycles = 0
             
-            # Calculate how many instances we need total
+            # Don't exceed MAX_INSTANCES
             desired_instances = min(queue_len, MAX_INSTANCES)
-            instances_needed = desired_instances - active_count
             
-            print(f"Desired instances: {desired_instances}, Need to add: {instances_needed}")
-            
-            if instances_needed > 0 and active_count < MAX_INSTANCES:
-                # First, start stopped instances
-                if stopped:
-                    num_to_start = min(instances_needed, len(stopped), MAX_INSTANCES - active_count)
-                    print(f"Starting {num_to_start} stopped instance(s)...")
-                    for i in stopped[:num_to_start]:
-                        print(f"Starting stopped instance: {i['InstanceId']}")
-                        start_instance(i['InstanceId'])
-                        instances_needed -= 1
-                        active_count += 1  # Track active count as we start instances
+            # Only scale up if we're below MAX_INSTANCES
+            if active_count < MAX_INSTANCES:
+                instances_needed = min(desired_instances - active_count, MAX_INSTANCES - active_count)
                 
-                # Then, launch new instances if still needed and under limit
-                if instances_needed > 0 and active_count < MAX_INSTANCES:
-                    num_to_launch = min(instances_needed, MAX_INSTANCES - active_count)
-                    print(f"Launching {num_to_launch} new instance(s)...")
-                    for _ in range(num_to_launch):
-                        launch_app_tier()
-                        active_count += 1  # Track active count as we launch instances
+                print(f"Desired: {desired_instances}, Need: {instances_needed}, Max: {MAX_INSTANCES}")
+                
+                if instances_needed > 0:
+                    # Start stopped instances first
+                    if stopped:
+                        num_to_start = min(instances_needed, len(stopped))
+                        print(f"Starting {num_to_start} stopped instance(s)...")
+                        for i in range(num_to_start):
+                            start_instance(stopped[i]['InstanceId'])
+                            instances_needed -= 1
+                            active_count += 1
+                    
+                    # Launch new ones if still needed
+                    if instances_needed > 0:
+                        remaining_capacity = MAX_INSTANCES - active_count
+                        num_to_launch = min(instances_needed, remaining_capacity)
+                        print(f"Launching {num_to_launch} new instance(s)...")
+                        for _ in range(num_to_launch):
+                            launch_app_tier()
+                            active_count += 1  # Track active count as we launch instances
         
         # Scale DOWN logic (with grace period)
         elif queue_len == 0:

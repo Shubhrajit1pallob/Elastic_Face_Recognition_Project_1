@@ -85,8 +85,8 @@ def clear_queue(queue_url):
 if __name__ == "__main__":
     clear_bucket(INPUT_BUCKET_NAME)
     clear_bucket(OUTPUT_BUCKET_NAME)
-    if len(sqs_client.list_queues().get('QueueUrls', [])) > 0:
-        clear_queue(SEND_QUEUE_URL)
-        clear_queue(RECEIVE_QUEUE_URL)
-    send_batch_requests(num_files=300)
-    receive_responses()
+    # if len(sqs_client.list_queues().get('QueueUrls', [])) > 0:
+    #     clear_queue(SEND_QUEUE_URL)
+    #     clear_queue(RECEIVE_QUEUE_URL)
+    # send_batch_requests(num_files=300)
+    # receive_responses()

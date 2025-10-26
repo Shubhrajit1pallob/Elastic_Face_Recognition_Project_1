@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import os
 import boto3
 import csv
+import time
 
 app = Flask(__name__)
 
@@ -58,27 +59,29 @@ def handle_request():
                 "error": "Filename is None, cannot process request."
             }), 400
             
-        response = sqs_client.receive_message(
-            QueueUrl=RECEIVE_QUEUE_URL,
-            MaxNumberOfMessages=1,
-            WaitTimeSeconds=2
-        )
-        messages = response.get('Messages', [])
-        for msg in messages:
-            if msg['Body'].startswith(expected_prefix):
-                sqs_client.delete_message(
-                    QueueUrl=RECEIVE_QUEUE_URL,
-                    ReceiptHandle=msg['ReceiptHandle']
-                )
-                return msg['Body'], 200, {'Content-Type': 'text/plain'}
-        # If no matching message is found, return an error response
-        return jsonify({
-            "error": "No matching response message found in SQS."
-        }), 404
+        expected_prefix = filename.rsplit('.', 1)[0] + ':'
+        timeout = 60  # seconds
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            response = sqs_client.receive_message(
+                QueueUrl=RECEIVE_QUEUE_URL,
+                MaxNumberOfMessages=10,
+                WaitTimeSeconds=2
+            )
+            messages = response.get('Messages', [])
+            for msg in messages:
+                if msg['Body'].startswith(expected_prefix):
+                    sqs_client.delete_message(
+                        QueueUrl=RECEIVE_QUEUE_URL,
+                        ReceiptHandle=msg['ReceiptHandle']
+                    )
+                    return msg['Body'], 200, {'Content-Type': 'text/plain'}
+            # Sleep briefly before polling again
+            time.sleep(1)
+        # Timeout
+        return "Timeout waiting for result", 504, {'Content-Type': 'text/plain'}
     except Exception as e:
-        return jsonify({
-            "error": str(e)
-        }), 500
+        return str(e), 500, {'Content-Type': 'text/plain'}
         
 
 if __name__ == '__main__':

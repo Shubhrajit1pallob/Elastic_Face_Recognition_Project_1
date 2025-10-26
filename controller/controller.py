@@ -214,19 +214,21 @@ def scale(queue_url):
             if instances_needed > 0 and active_count < MAX_INSTANCES:
                 # First, start stopped instances
                 if stopped:
-                    num_to_start = min(instances_needed, len(stopped))
+                    num_to_start = min(instances_needed, len(stopped), MAX_INSTANCES - active_count)
                     print(f"Starting {num_to_start} stopped instance(s)...")
                     for i in stopped[:num_to_start]:
                         print(f"Starting stopped instance: {i['InstanceId']}")
                         start_instance(i['InstanceId'])
                         instances_needed -= 1
+                        active_count += 1  # Track active count as we start instances
                 
-                # Then, launch new instances if still needed
-                if instances_needed > 0 and total_capacity < MAX_INSTANCES:
-                    num_to_launch = min(instances_needed, MAX_INSTANCES - total_capacity)
+                # Then, launch new instances if still needed and under limit
+                if instances_needed > 0 and active_count < MAX_INSTANCES:
+                    num_to_launch = min(instances_needed, MAX_INSTANCES - active_count)
                     print(f"Launching {num_to_launch} new instance(s)...")
                     for _ in range(num_to_launch):
                         launch_app_tier()
+                        active_count += 1  # Track active count as we launch instances
         
         # Scale DOWN logic (with grace period)
         elif queue_len == 0:

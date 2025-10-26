@@ -162,7 +162,7 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
           # Copy both files from the runner's root folder to the remote user's home directory
           source: "compose.yaml, .env"
-          target: "/home/ubuntu/"
+          target: "/home/ubuntu/docker-compose.yml, /home/ubuntu/.env"
       - name: Deploy docker img to EC2 instance
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}

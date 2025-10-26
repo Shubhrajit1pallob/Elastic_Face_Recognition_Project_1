@@ -187,7 +187,7 @@ jobs:
             echo "REPOSITORY=$REPOSITORY" >> .env
 
             # Copy the .env file to the EC2 instance
-            scp -i $SSH_KEY .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
+            scp -i $AWS_SSH_KEY_PRIVATE .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
             sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d
 
 

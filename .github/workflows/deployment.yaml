@@ -125,17 +125,22 @@ jobs:
       - name: Deploy docker img to EC2 instance
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-          REPOSITORY: cse546-project1-part1-repo
+          REPOSITORY: cse546-project1-part2-repo
           INSTANCE_IP: ${{ env.INSTANCE_IP }}
           SSH_KEY: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
           IMAGE_TAG: ${{ github.sha }}
+          INPUT_BUCKET_NAME: 0000000000-in-bucket
+          OUTPUT_BUCKET_NAME: 0000000000-out-bucket
+          SEND_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue
+          RECEIVE_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue
+          AMI_ID: ami-0172bcd94efa5ae95
           AWS_DEFAULT_REGION: us-east-1
         uses: appleboy/ssh-action@master
         with:
           host: ${{ env.INSTANCE_IP }}
           username: ubuntu
           key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
-          envs: AWS_SSH_KEY_PRIVATE,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME
+          envs: AWS_SSH_KEY_PRIVATE,REGISTRY,REPOSITORY,IMAGE_TAG,AWS_DEFAULT_REGION,AWS_ACCESS_KEY_ID,AWS_SECRET_ACCESS_KEY,AWS_REGION,AWS_SSH_KEY_PUBLIC,AWS_TF_STATE_BUCKET_NAME,INPUT_BUCKET_NAME,OUTPUT_BUCKET_NAME,SEND_QUEUE_URL,RECEIVE_QUEUE_URL,AMI_ID
           script: |
             # Error handling
             set -e
@@ -149,6 +154,9 @@ jobs:
             # Start Docker service
             sudo systemctl start docker
             sudo systemctl enable docker
+
+            echo "$AWS_SSH_KEY_PRIVATE" > aws_key.pem
+            chmod 600 aws_key.pem
             
             # Configure AWS credentials for the ubuntu user
             mkdir -p ~/.aws
@@ -167,7 +175,7 @@ jobs:
             # sudo docker rm controller || true
 
             # Copy the compose file to the EC2 instance
-            scp -i $AWS_SSH_KEY_PRIVATE compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
+            scp -i aws_key.pem compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
             
             # Deploy the application using Docker Compose
             echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
@@ -187,7 +195,10 @@ jobs:
             echo "REPOSITORY=$REPOSITORY" >> .env
 
             # Copy the .env file to the EC2 instance
-            scp -i $AWS_SSH_KEY_PRIVATE .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
+            scp -i aws_key.pem .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
             sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d
+
+            # Clean up
+            rm aws_key.pem
 
 

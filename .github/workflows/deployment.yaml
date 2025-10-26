@@ -122,6 +122,47 @@ jobs:
       #     echo "Waiting for EC2 instance to be ready..."
       #     sleep 60
 
+      - name: Create and Copy Environment and Compose Files
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+          REPOSITORY: cse546-project1-part2-repo
+          IMAGE_TAG: ${{ github.sha }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
+          INPUT_BUCKET_NAME: 0000000000-in-bucket
+          OUTPUT_BUCKET_NAME: 0000000000-out-bucket
+          SEND_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue
+          RECEIVE_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue
+          AMI_ID: ami-0172bcd94efa5ae95
+        run: |
+          echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
+          echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
+          echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION" >> .env
+
+          # Add other environment variables as needed
+          echo "INPUT_BUCKET_NAME=$INPUT_BUCKET_NAME" >> .env
+          echo "OUTPUT_BUCKET_NAME=$OUTPUT_BUCKET_NAME" >> .env
+          echo "SEND_QUEUE_URL=$SEND_QUEUE_URL" >> .env
+          echo "RECEIVE_QUEUE_URL=$RECEIVE_QUEUE_URL" >> .env
+          echo "AMI_ID=$AMI_ID" >> .env
+
+          # Add the IMAGE_TAG variable, Registry, and Repository info
+          echo "IMAGE_TAG=$IMAGE_TAG" >> .env
+          echo "REGISTRY=$REGISTRY" >> .env
+          echo "REPOSITORY=$REPOSITORY" >> .env
+      
+      - name: 2. Securely Copy Files to EC2
+        env:
+          INSTANCE_IP: ${{ env.INSTANCE_IP }}
+        uses: appleboy/scp-action@master # Use the dedicated SCP Action
+        with:
+          host: ${{ env.INSTANCE_IP }}
+          username: ubuntu
+          key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
+          # Copy both files from the runner's root folder to the remote user's home directory
+          source: "compose.yaml, .env"
+          target: "/home/ubuntu/"
       - name: Deploy docker img to EC2 instance
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
@@ -154,9 +195,6 @@ jobs:
             # Start Docker service
             sudo systemctl start docker
             sudo systemctl enable docker
-
-            echo "$SSH_KEY" > aws_key.pem
-            chmod 600 aws_key.pem
             
             # Configure AWS credentials for the ubuntu user
             mkdir -p ~/.aws
@@ -169,36 +207,8 @@ jobs:
             aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             
             # Stop and remove existing container (if any)
-            # sudo docker stop web || true
-            # sudo docker rm web || true
-            # sudo docker stop controller || true
-            # sudo docker rm controller || true
-
-            # Copy the compose file to the EC2 instance
-            scp -o StrictHostKeyChecking=no -i aws_key.pem ${GITHUB_WORKSPACE}/compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
+            sudo docker-compose -f /home/ubuntu/docker-compose.yml down || true
             
-            # Deploy the application using Docker Compose
-            echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
-            echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env
-            echo "AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION" >> .env
-
-            # Add other environment variables as needed
-            echo "INPUT_BUCKET_NAME=0000000000-in-bucket" >> .env
-            echo "OUTPUT_BUCKET_NAME=0000000000-out-bucket" >> .env
-            echo "SEND_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue" >> .env
-            echo "RECEIVE_QUEUE_URL=https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue" >> .env
-            echo "AMI_ID=ami-0172bcd94efa5ae95" >> .env
-
-            # Add the IMAGE_TAG variable, Registry, and Repository info
-            echo "IMAGE_TAG=$IMAGE_TAG" >> .env
-            echo "REGISTRY=$REGISTRY" >> .env
-            echo "REPOSITORY=$REPOSITORY" >> .env
-
-            # Copy the .env file to the EC2 instance
-            scp -o StrictHostKeyChecking=no -i aws_key.pem .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
             sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d
-
-            # Clean up
-            rm aws_key.pem
 
 

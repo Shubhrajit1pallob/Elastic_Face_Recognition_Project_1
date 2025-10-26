@@ -2,6 +2,9 @@ from face_recognition import face_match
 import boto3
 import os
 
+# SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# MODEL_PATH = os.path.join(SCRIPT_DIR, 'data.pt')
+
 def load_env_var(var_name, default=None, env_file='/etc/app-tier.env'):
     with open(env_file) as f:
         for line in f:
@@ -48,7 +51,7 @@ def process_image(key):
     if key is not None:
         local_path = os.path.join(DOWNLOAD_PATH, os.path.basename(key['Body']))
         get_image_from_s3(INPUT_BUCKET_NAME, key['Body'], local_path)
-        name, distance = face_match(local_path, 'data.pt')
+        name, distance = face_match(local_path, data_path='data.pt')
         return name, distance
 
     return None, None

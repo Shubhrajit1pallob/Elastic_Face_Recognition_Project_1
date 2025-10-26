@@ -175,7 +175,7 @@ jobs:
             # sudo docker rm controller || true
 
             # Copy the compose file to the EC2 instance
-            scp -i aws_key.pem compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
+            scp -o StrictHostKeyChecking=no -i aws_key.pem compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
             
             # Deploy the application using Docker Compose
             echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
@@ -195,7 +195,7 @@ jobs:
             echo "REPOSITORY=$REPOSITORY" >> .env
 
             # Copy the .env file to the EC2 instance
-            scp -i aws_key.pem .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
+            scp -o StrictHostKeyChecking=no -i aws_key.pem .env ubuntu@${INSTANCE_IP}:/home/ubuntu/.env
             sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d
 
             # Clean up

@@ -207,8 +207,8 @@ jobs:
             aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             
             # Stop and remove existing container (if any)
-            sudo docker-compose -f /home/ubuntu/compose.yml down || true
-            
-            sudo docker-compose -f /home/ubuntu/compose.yml up -d
+            sudo docker-compose -f /home/ubuntu/compose.yaml down || true
+
+            sudo docker-compose -f /home/ubuntu/compose.yaml up -d
 
 

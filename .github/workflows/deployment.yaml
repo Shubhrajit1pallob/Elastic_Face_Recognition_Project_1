@@ -162,7 +162,7 @@ jobs:
           key: ${{ secrets.AWS_SSH_KEY_PRIVATE }}
           # Copy both files from the runner's root folder to the remote user's home directory
           source: "compose.yaml, .env"
-          target: "/home/ubuntu/docker-compose.yml, /home/ubuntu/.env"
+          target: "/home/ubuntu/"
       - name: Deploy docker img to EC2 instance
         env:
           REGISTRY: ${{ steps.ecr-login.outputs.registry }}
@@ -207,8 +207,8 @@ jobs:
             aws ecr get-login-password --region $AWS_DEFAULT_REGION | sudo docker login --username AWS --password-stdin $REGISTRY
             
             # Stop and remove existing container (if any)
-            sudo docker-compose -f /home/ubuntu/docker-compose.yml down || true
+            sudo docker-compose -f /home/ubuntu/compose.yml down || true
             
-            sudo docker-compose -f /home/ubuntu/docker-compose.yml up -d
+            sudo docker-compose -f /home/ubuntu/compose.yml up -d
 
 

@@ -57,20 +57,24 @@ def handle_request():
             return jsonify({
                 "error": "Filename is None, cannot process request."
             }), 400
-        while True:
-            response = sqs_client.receive_message(
-                QueueUrl=RECEIVE_QUEUE_URL,
-                MaxNumberOfMessages=1,
-                WaitTimeSeconds=2
-            )
-            messages = response.get('Messages', [])
-            for msg in messages:
-                if msg['Body'].startswith(expected_prefix):
-                    sqs_client.delete_message(
-                        QueueUrl=RECEIVE_QUEUE_URL,
-                        ReceiptHandle=msg['ReceiptHandle']
-                    )
-                    return msg['Body'], 200, {'Content-Type': 'text/plain'}
+            
+        response = sqs_client.receive_message(
+            QueueUrl=RECEIVE_QUEUE_URL,
+            MaxNumberOfMessages=1,
+            WaitTimeSeconds=2
+        )
+        messages = response.get('Messages', [])
+        for msg in messages:
+            if msg['Body'].startswith(expected_prefix):
+                sqs_client.delete_message(
+                    QueueUrl=RECEIVE_QUEUE_URL,
+                    ReceiptHandle=msg['ReceiptHandle']
+                )
+                return msg['Body'], 200, {'Content-Type': 'text/plain'}
+        # If no matching message is found, return an error response
+        return jsonify({
+            "error": "No matching response message found in SQS."
+        }), 404
     except Exception as e:
         return jsonify({
             "error": str(e)

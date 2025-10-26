@@ -1,4 +1,0 @@
-Flask==2.3.3                    # Web framework for Python
-boto3==1.28.3                   # AWS SDK for Python
-gunicorn==20.1.0                # WSGI HTTP server for running Flask applications
-requests==2.31.0                # HTTP library for Python

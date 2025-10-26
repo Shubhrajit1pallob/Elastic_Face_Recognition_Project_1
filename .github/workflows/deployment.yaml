@@ -19,7 +19,7 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
@@ -175,7 +175,7 @@ jobs:
             # sudo docker rm controller || true
 
             # Copy the compose file to the EC2 instance
-            scp -o StrictHostKeyChecking=no -i aws_key.pem compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
+            scp -o StrictHostKeyChecking=no -i aws_key.pem ${GITHUB_WORKSPACE}/compose.yaml ubuntu@${INSTANCE_IP}:/home/ubuntu/docker-compose.yml
             
             # Deploy the application using Docker Compose
             echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env

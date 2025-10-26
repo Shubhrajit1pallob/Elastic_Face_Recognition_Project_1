@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  web-tier:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+      - INPUT_BUCKET_NAME=${INPUT_BUCKET_NAME}
+      - OUTPUT_BUCKET_NAME=${OUTPUT_BUCKET_NAME}
+      - SEND_QUEUE_URL=${SEND_QUEUE_URL}
+      - RECEIVE_QUEUE_URL=${RECEIVE_QUEUE_URL}
+  
+  controller:
+    build:
+      context: .
+      dockerfile: Dockerfile.controller
+    environment:
+      - INPUT_BUCKET_NAME=${INPUT_BUCKET_NAME}
+      - AMI_ID=${AMI_ID}
+    depends_on:
+      - web-tier

@@ -1,0 +1,36 @@
+credentials/
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+.terraform.lock.hcl
+crash.log
+*.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.env
+.env
+venv/
+.venv/
+env/
+build/
+dist/
+*.egg-info/
+.DS_Store
+
+# VS Code settings (optional)
+.vscode/
+face_images_1000/
+packer-ami-build/app-tier-files/resnetV1/resnetV1.pt
+packer-ami-build/app-tier-files/resnetV1/resnetV1_video_weights.pt
+packer-ami-build/app-tier-files/facenet_pytorch
+data.ptpacker-ami-build/app-tier-files/resnetV1/*.pt
+data.pt

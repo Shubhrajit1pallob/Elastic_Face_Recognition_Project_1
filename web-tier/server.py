@@ -31,14 +31,10 @@ RECEIVE_QUEUE_URL = os.getenv('RECEIVE_QUEUE_URL','https://sqs.us-east-1.amazona
 
 @app.route("/", methods=['POST'])
 def handle_request():
-
     if 'inputFile' not in request.files:
-        return jsonify({
-            "error": "No file part in the request"
-        }), 400  
+        return jsonify({"error": "No file part in the request"}), 400  
     
     file = request.files['inputFile']
-    
     filename = file.filename
     print(f"Received file: {filename}")
     
@@ -52,14 +48,10 @@ def handle_request():
             MessageBody=filename
         )
 
-        if filename is not None:
-            expected_prefix = filename.rsplit('.', 1)[0] + ':'
-        else:
-            return jsonify({
-                "error": "Filename is None, cannot process request."
-            }), 400
-            
-        expected_prefix = filename.rsplit('.', 1)[0] + ':'
+        if not filename:
+            return jsonify({"error": "Filename is None, cannot process request."}), 400
+
+        expected_prefix = filename + ':'
         timeout = 60  # seconds
         start_time = time.time()
         while time.time() - start_time < timeout:
@@ -76,7 +68,6 @@ def handle_request():
                         ReceiptHandle=msg['ReceiptHandle']
                     )
                     return msg['Body'], 200, {'Content-Type': 'text/plain'}
-            # Sleep briefly before polling again
             time.sleep(1)
         # Timeout
         return "Timeout waiting for result", 504, {'Content-Type': 'text/plain'}

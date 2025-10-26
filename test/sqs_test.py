@@ -2,6 +2,7 @@ import boto3
 
 # Replace with your actual queue URL
 QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue'
+QUEUE_URL1 = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue'
 
 sqs = boto3.client('sqs', region_name='us-east-1')
 
@@ -24,16 +25,16 @@ def receive_message():
 def delete_message(receipt_handle):
     sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=receipt_handle)
     print("Deleted message.")
-    
-def purge_queue():
+
+def purge_queue(queue_url):
     while True:
-        response = sqs.receive_message(QueueUrl=QUEUE_URL, MaxNumberOfMessages=10, WaitTimeSeconds=2)
+        response = sqs.receive_message(QueueUrl=queue_url, MaxNumberOfMessages=10, WaitTimeSeconds=2)
         messages = response.get('Messages', [])
         if not messages:
             print("Queue is empty.")
             break
         for msg in messages:
-            sqs.delete_message(QueueUrl=QUEUE_URL, ReceiptHandle=msg['ReceiptHandle'])
+            sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=msg['ReceiptHandle'])
             print("Deleted message:", msg['Body'])
     
 if __name__ == "__main__":
@@ -46,5 +47,6 @@ if __name__ == "__main__":
     # # Test deleting
     # if handle:
     #     delete_message(handle)
-    
-    purge_queue()
+
+    purge_queue(QUEUE_URL)
+    purge_queue(QUEUE_URL1)

@@ -51,7 +51,7 @@ def handle_request():
         if not filename:
             return jsonify({"error": "Filename is None, cannot process request."}), 400
 
-        expected_prefix = filename + ':'
+        expected_prefix = filename.rsplit('.', 1)[0] + ':'
         timeout = 60  # seconds
         start_time = time.time()
         while time.time() - start_time < timeout:

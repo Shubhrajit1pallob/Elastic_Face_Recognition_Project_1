@@ -134,7 +134,7 @@ jobs:
           OUTPUT_BUCKET_NAME: 0000000000-out-bucket
           SEND_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue
           RECEIVE_QUEUE_URL: https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue
-          AMI_ID: ami-015ba31a61e7d5b0a
+          AMI_ID: ami-054932487b403192d
         run: |
           echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > .env
           echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> .env

@@ -141,7 +141,7 @@ def launch_app_tier():
     ec2 = boto3.client('ec2', region_name='us-east-1')
     
     # Replace with your AMI ID from the Packer build
-    AMI_ID = os.getenv('AMI_ID', 'ami-015ba31a61e7d5b0a')
+    AMI_ID = os.getenv('AMI_ID', 'ami-054932487b403192d')
     KEY_NAME = 'Shubhrajit-EC2-Keypair'
     SG_ID = 'sg-048a60be48ffbffc7'
     SUBNET_ID = 'subnet-09d62497e682d7e3e'

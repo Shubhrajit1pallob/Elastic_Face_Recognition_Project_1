@@ -1,0 +1,31 @@
+# The controller image is built from the repository root with `COPY . .`
+# (see controller/Dockerfile.controller), so without this file everything below
+# would be copied into the image. It needs only controller/ and requirements.txt.
+
+# Version control and CI
+.git
+.github
+.gitignore
+.dockerignore
+
+# Not part of the controller
+Terraform/
+packer-ami-build/
+test/
+web-tier/
+compose.yaml
+launch_instance.py
+backend.py
+*.md
+
+# Course-provided material and data, credentials, local state
+CSE546-SPRING-2025/
+face_images_1000/
+face_images_1000.zip
+Classification_Results*
+Classification Results*
+*.zip
+credentials/
+*.tfstate*
+*.tfvars
+**/__pycache__

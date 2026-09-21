@@ -34,3 +34,10 @@ packer-ami-build/app-tier-files/resnetV1/resnetV1_video_weights.pt
 packer-ami-build/app-tier-files/facenet_pytorch
 data.ptpacker-ami-build/app-tier-files/resnetV1/*.pt
 data.pt
+
+# Course-provided material and data: not part of this project's code
+CSE546-SPRING-2025/
+face_images_1000.zip
+Classification_Results*
+Classification Results*
+*.zip

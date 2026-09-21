@@ -5,7 +5,8 @@ INPUT_BUCKET_NAME = '0000000000-in-bucket'
 OUTPUT_BUCKET_NAME = '0000000000-out-bucket'
 SEND_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue'
 RECEIVE_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue'
-IMAGE_DIR = '/Users/shawn47/Documents/CSE 546 Cloud computing/Project1/face_images_1000'
+# The course's face dataset is not part of this repository. Point this at a local copy.
+IMAGE_DIR = os.environ.get('FACE_IMAGES_DIR', 'face_images_1000')
 
 s3_client = boto3.client('s3', region_name='us-east-1')
 sqs_client = boto3.client('sqs', region_name='us-east-1')

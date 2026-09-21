@@ -6,7 +6,8 @@ import time
 INPUT_BUCKET_NAME = '0000000000-in-bucket'
 SEND_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-req-queue'
 RECEIVE_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789012/0000000000-resp-queue'
-IMAGE_PATH = '/Users/shawn47/Documents/CSE 546 Cloud computing/Project1/face_images_1000/test_005.jpg'
+# The course's face dataset is not part of this repository. Point FACE_IMAGES_DIR at a local copy.
+IMAGE_PATH = os.path.join(os.environ.get('FACE_IMAGES_DIR', 'face_images_1000'), 'test_005.jpg')
 IMAGE_KEY = os.path.basename(IMAGE_PATH)     # S3 key (filename)
 
 print(IMAGE_KEY)
